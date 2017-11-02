@@ -37,7 +37,7 @@ WIRELESS_INTERFACE=...
 sysctl net.ipv4.ip_forward=1
 
 ip link set up dev $ETHERNET_INTERFACE 
-ip addr add 192.168.123.100/24 dev net0 # arbitrary address
+ip addr add 192.168.123.100/24 dev $ETHERNET_INTERFACE 
 
 iptables -t nat -A POSTROUTING -o $WIRELESS_INTERFACE -j MASQUERADE
 iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
@@ -70,9 +70,14 @@ sudo systemctl enable ssh
 sudo systemctl start ssh
 ```
 
+Finally, we need to make sure that all the cgroups required for running containers are enabled. Raspbian doesn't have `memory` and `cpuset` enabled by default, and `kubeadm` will complain if they're missing. This is an easy fix, just add some flags to `/boot/cmdline.txt`:
+```
+... cgroup_enable=cpuset cgroup_enable=memory
+```
 
 ## Ansible
 Ansible is available in the Arch user repository:
-`pacaur -S ansible`
+`
+pacaur -S ansible`
 
 Ansible uses a push based system for maintaining configurations by default, so we'll need to tell it about where our pis live.
